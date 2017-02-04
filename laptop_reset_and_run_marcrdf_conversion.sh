@@ -16,17 +16,9 @@ LOG_FILE="${LD4P_LOGS}/Marc2bibframe_${stamp}.log"
 echo
 echo "Searching for MARC-XML files: ${LD4P_MARCXML}"
 echo "Logging to: ${LOG_FILE}"
-for XML_FILE in `find ${LD4P_MARCXML} -type f`
+for XML_FILE in `find ${LD4P_MARCXML} -type f | sort`
 do
-    filename=$(basename "${XML_FILE}" ".xml")
-    RDF_FILE="${LD4P_MARCRDF}/${filename}.rdf"
-
-    if [[ -n "${LD4P_MARCRDF_REPLACE}" || ! -s "${RDF_FILE}" ]]; then
-        echo "Converting to MARC-RDF file: ${RDF_FILE}" >> ${LOG_FILE}
-        loc_marc2bibframe ${XML_FILE} ${RDF_FILE}
-    else
-        echo "Skipping existing MARC-RDF file: ${RDF_FILE}" >> ${LOG_FILE}
-    fi
+    loc_marc2bibframe ${XML_FILE}
 
     # TODO: remove this exit when testing is done
     exit
