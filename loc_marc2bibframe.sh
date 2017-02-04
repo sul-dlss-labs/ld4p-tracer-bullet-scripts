@@ -1,65 +1,47 @@
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=sh
 #!/bin/bash
 
+SCRIPT_PATH=$(dirname $0)
+
 # Check dependencies
-if [ "$LD4P_MARC" == "" ]; then
-    SCRIPT_PATH=$(dirname $0)
+if [ "$LOC_M2B_XQUERY" == "" ]; then
     source ${SCRIPT_PATH}/ld4p_configure.sh
 fi
 
 # Bash function to convert one MARC-XML file to a Bibframe RDF file.
 # Depends on the environment variables defined in ld4p_configure.sh
-# Depends on installation of the ld4p-tracer-bullets java library.
-# Requires one input parameter - the path to a MARC21 binary file.
-
-
-# Function wrapper to run a MARC to Bibframe converter, given an input and output file.
-# Usage:  loc_marc2bibframe {input_file} {output_file}
+# Depends on installation of the loc marc2bibframe project.
+# Usage:  loc_marc2bibframe {MRC_XML} {MRC_RDF}
 loc_marc2bibframe () {
-    input_file=$1
-    output_file=$2
-    m2b_xquery=${LD4P_BIN}/Marc2Bibframe/marc2bibframe/xbin/saxon.xqy
-    /usr/bin/java -cp ${LD4P_JAR} net.sf.saxon.Query ${m2b_xquery} \
-                  baseuri=${LD4P_BASEURI} \
-                  serialization="rdfxml" \
-                  marcxmluri=${input_file} \
-                  1> ${output_file} \
-                  2>> ${LD4P_LOGS}/errors
-}
+    MRC_XML=$1
+    MRC_RDF=$2
 
+    filename=$(basename "${MRC_XML}" ".xml")
+    MRC_RDF="${LD4P_MARCRDF}/${filename}.rdf"
 
-generate_marcxml_with_auth_uris () {
+    if [[ "${LD4P_MARCRDF_REPLACE}" == "" && -s "${MRC_RDF}" ]]; then
+        echo "Skipping existing MARC-RDF file: ${MRC_RDF}" >> ${LOG_FILE}
+        return 0
+    fi
 
-    MRC_FILE=$1
-
-    stamp=$(date --iso-8601)
-    filename=$(basename ${MRC_FILE} .mrc)
-    LOG_FILE="${LD4P_LOGS}/${filename}_MarcToXML_${stamp}.log"
-
-    echo
-    echo "Converting MARC file:  ${MRC_FILE}"
-    echo "Output MARC-XML files: ${LD4P_MARCXML}/*.xml"
-    echo "Logging conversion to: ${LOG_FILE}"
-
-    options="-i ${MRC_FILE} -o ${LD4P_MARCXML} -l ${LOG_FILE}"
-    [ -n "${LD4P_MARCXML_REPLACE}" ] && options="${options} -r"
-
-    # Process all records in the MRC_FILE using marc4j and SQL to
-    # look up authority keys and retrieve any URI values from
-    # 92X fields and put them in the subfield 0 so that the 
-    # LOC converter (for Bibframe v1) can use them correctly.
-    java -cp ${LD4P_JAR} org.stanford.MarcToXML ${options}
+#    export LOC_M2B_XQUERY="${LD4P_BIN}/loc_marc2bibframe.xqy"
+#    m2b_xquery=${LD4P_BIN}/Marc2Bibframe/marc2bibframe/xbin/saxon.xqy
+    java -cp ${LD4P_JAR} \
+        net.sf.saxon.Query ${LOC_M2B_XQUERY} \
+            marcxmluri="file://${MRC_XML}" \
+            baseuri=${LD4P_BASEURI} \
+            serialization="rdfxml" \
+            1> ${MRC_RDF} \
+            2>> ${LOG_FILE}
 
     SUCCESS=$?
     if [ ${SUCCESS} ]; then
-	echo "Completed conversion."
-	echo "Moving MARC file to archive: ${LD4P_DATA}/Archive/Marc/"
-	mv $MRC_FILE ${LD4P_DATA}/Archive/Marc/
+        echo "Converted MARC-RDF file: ${MRC_RDF}" >> ${LOG_FILE}
+        mv ${MRC_XML} ${LD4P_ARCHIVE_MARCXML}
     else
-	echo "ERROR: Conversion failed for ${MRC_FILE}" | tee --append ${LD4P_LOGS}/errors
+        echo "ERROR: Conversion failed for ${MRC_XML}" >> ${LOG_FILE}
     fi
-    echo
 
-    return $SUCCESS
+    return ${SUCCESS}
 }
 
