@@ -64,17 +64,3 @@ mkdir -p ${LD4P_DATA}/Archive/Marc || kill -INT $$
 mkdir -p ${LD4P_DATA}/Archive/MarcXML || kill -INT $$
 mkdir -p ${LD4P_LOGS} || kill -INT $$
 
-# Function wrapper to run a MARC to Bibframe converter, given an input and output file.
-# Usage:  ld4p_marc2bibframe {input_file} {output_file}
-ld4p_marc2bibframe () {
-    input_file=$1
-    output_file=$2
-    m2b_xquery=${LD4P_BIN}/Marc2Bibframe/marc2bibframe/xbin/saxon.xqy
-    /usr/bin/java -cp ${LD4P_JAR} net.sf.saxon.Query ${m2b_xquery} \
-                  baseuri=${LD4P_BASEURI} \
-                  serialization="rdfxml" \
-                  marcxmluri=${input_file} \
-                  1> ${output_file} \
-                  2>> ${LD4P_LOGS}/errors
-}
-
