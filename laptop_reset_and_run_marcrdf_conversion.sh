@@ -19,8 +19,5 @@ echo "Logging to: ${LOG_FILE}"
 for XML_FILE in `find ${LD4P_MARCXML} -type f | sort`
 do
     loc_marc2bibframe ${XML_FILE}
-
-    # TODO: remove this exit when testing is done
-    exit
 done
 

@@ -19,9 +19,5 @@ echo "Searching for MARC files: ${LD4P_MARC}"
 for MRC_FILE in `find ${LD4P_MARC} -type f | sort`
 do
     generate_marcxml_with_auth_uris ${MRC_FILE}
-
-
-    # TODO: remove this exit when testing is done
-    exit
 done
 
