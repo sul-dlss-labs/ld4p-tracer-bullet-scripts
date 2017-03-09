@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -f "/etc/default/blazegraph" ] ; then
-    . "/etc/default/blazegraph"
+    source "/etc/default/blazegraph"
 else
     JETTY_PORT=9999
 fi

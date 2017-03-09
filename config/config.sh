@@ -10,15 +10,32 @@
 
 export LD4P_BASEURI="http://linked-data-test.stanford.edu/library/"
 
-# If the system already defines an LD4P_SIRSI path, it will be used.
-# If a custom LD4P_SIRSI path is required, it can be set in the
-# system ENV or on the command line, like so:
-# LD4P_SIRSI=/ld4p_data source /path/to/ld4p_configure.sh
-if [ "$LD4P_SIRSI" == "" ]; then
-    export LD4P_SIRSI=/symphony
+# An LD4P_ROOT path must be defined by any sripts calling this configuration.
+if [ "$LD4P_ROOT" == "" ]; then
+    echo "ERROR: The LD4P configuration requires an LD4P_ROOT path: ${LD4P_ROOT}" 1>&2
+    kill -INT $$
 fi
-if [ ! -d "$LD4P_SIRSI" ]; then
-    echo "ERROR: The LD4P scripts require an LD4P_SIRSI path: ${LD4P_SIRSI}" 1>&2
+
+# Paths for code, configs and logs
+export LD4P_BIN="${LD4P_ROOT}/bin"
+export LD4P_LIB="${LD4P_ROOT}/lib"
+export LD4P_LOGS="${LD4P_ROOT}/log"
+export LD4P_CONFIGS="${LD4P_ROOT}/config"
+# Check paths exist, fail if they do not
+[[ ! -d "$LD4P_BIN" ]] && echo "ERROR: LD4P_BIN (${LD4P_BIN}) does not exist" && kill -INT $$
+[[ ! -d "$LD4P_LIB" ]] && echo "ERROR: LD4P_LIB (${LD4P_LIB}) does not exist" && kill -INT $$
+[[ ! -d "$LD4P_LOGS" ]] && echo "ERROR: LD4P_LOGS (${LD4P_LOGS}) does not exist" && kill -INT $$
+[[ ! -d "$LD4P_CONFIGS" ]] && echo "ERROR: LD4P_CONFIGS (${LD4P_CONFIGS}) does not exist" && kill -INT $$
+
+# If the system already defines an LD4P_DATA path, it will be used.
+# If a custom LD4P_DATA path is required, it can be set in the
+# system ENV or on the command line, like so:
+# LD4P_DATA=/ld4p_data source /path/to/ld4p_configure.sh
+if [ "$LD4P_DATA" == "" ]; then
+    export LD4P_DATA="${LD4P_ROOT}/data"
+fi
+if [ ! -d "$LD4P_DATA" ]; then
+    echo "ERROR: The LD4P scripts require an LD4P_DATA path: ${LD4P_DATA}" 1>&2
     kill -INT $$
 fi
 
@@ -27,26 +44,14 @@ fi
 # system ENV or on the command line, like so:
 # LD4P_RDF=/ld4p_data source /path/to/ld4p_configure.sh
 if [ "$LD4P_RDF" == "" ]; then
-    export LD4P_RDF=/rdf
+    export LD4P_RDF="${LD4P_DATA}/rdf"
 fi
 if [ ! -d "$LD4P_RDF" ]; then
     echo "ERROR: The LD4P scripts require an LD4P_RDF path: ${LD4P_RDF}" 1>&2
     kill -INT $$
 fi
 
-# Paths for code, configs and logs
-export LD4P_BIN="${LD4P_SIRSI}/bin"
-export LD4P_LIB="${LD4P_SIRSI}/lib"
-export LD4P_LOGS="${LD4P_SIRSI}/log"
-export LD4P_CONFIGS="${LD4P_SIRSI}/configs"
-# Create paths, recursively, if they don't exist
-mkdir -p ${LD4P_BIN} || kill -INT $$
-mkdir -p ${LD4P_LIB} || kill -INT $$
-mkdir -p ${LD4P_LOGS} || kill -INT $$
-mkdir -p ${LD4P_CONFIGS} || kill -INT $$
-
 # Paths for data records
-export LD4P_DATA="${LD4P_SIRSI}/Dataload/LD4P"
 export LD4P_MARC="${LD4P_DATA}/Marc"
 export LD4P_MARCXML="${LD4P_DATA}/MarcXML"
 export LD4P_MARCRDF="${LD4P_RDF}/MarcRDF"
